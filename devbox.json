@@ -1,9 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
-    "nodejs@22",
+		"bun@latest",
     "pnpm@latest",
-    "lefthook@latest"
+    "lefthook@latest",
+		"just@latest"
   ],
   "env": {
     "PATH": "$HOME/.moon/bin:$PATH"
