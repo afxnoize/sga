@@ -1,0 +1,7 @@
+options(
+  link: {
+    "js": {
+      "format": "esm",
+    },
+  },
+)

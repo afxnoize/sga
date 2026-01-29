@@ -1,0 +1,12 @@
+import {
+  "afxnoize/sga/lib",
+}
+
+options(
+  "is-main": true,
+  link: {
+    "js": {
+      "format": "esm",
+    },
+  },
+)

@@ -1,0 +1,18 @@
+{
+  "name": "sga",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "sga": "./bin/sga.mjs"
+  },
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "dependencies": {
+    "duckdb": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["duckdb"]
+  }
+}

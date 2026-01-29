@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "sag": {
+      "command": "node",
+      "args": ["bin/sag.mjs"],
+      "cwd": "/path/to/sag"
+    }
+  }
+}
