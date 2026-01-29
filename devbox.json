@@ -10,13 +10,12 @@
   },
   "shell": {
     "init_hook": [
-      "if ! command -v moon &> /dev/null; then",
-      "  echo 'Installing MoonBit...'",
-      "  curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash",
-      "fi",
       "lefthook install"
     ],
     "scripts": {
+      "setup": [
+        "curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash"
+      ],
       "test": [
         "echo \"Error: no test specified\" && exit 1"
       ]
