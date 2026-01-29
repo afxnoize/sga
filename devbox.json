@@ -2,7 +2,8 @@
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.16.0/.schema/devbox.schema.json",
   "packages": [
     "nodejs@22",
-    "pnpm@latest"
+    "pnpm@latest",
+    "lefthook@latest"
   ],
   "env": {
     "PATH": "$HOME/.moon/bin:$PATH"
@@ -12,7 +13,8 @@
       "if ! command -v moon &> /dev/null; then",
       "  echo 'Installing MoonBit...'",
       "  curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash",
-      "fi"
+      "fi",
+      "lefthook install"
     ],
     "scripts": {
       "test": [

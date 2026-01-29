@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "*.mbt"
+      run: moon fmt
+    check:
+      glob: "*.mbt"
+      run: moon check --target js
+
+pre-push:
+  commands:
+    build:
+      run: moon build --target js
