@@ -19,6 +19,10 @@ extern "js" fn exists_sync(path : String) -> Bool = "existsSync"
 extern "js" fn unlink_sync(path : String) -> Unit = "unlinkSync"
 
 ///|
+#module("node:fs")
+extern "js" fn rm_sync(path : String, options : Value) -> Unit = "rmSync"
+
+///|
 #module("node:path")
 extern "js" fn path_join(a : String, b : String) -> String = "join"
 
@@ -27,35 +31,44 @@ extern "js" fn path_join(a : String, b : String) -> String = "join"
 extern "js" fn dirname(path : String) -> String = "dirname"
 
 ///|
-#module("node:os")
-extern "js" fn homedir() -> String = "homedir"
-
-///|
 extern "js" fn make_mkdir_options() -> Value =
   #|() => ({ recursive: true })
+
+///|
+extern "js" fn make_rm_options() -> Value =
+  #|() => ({ recursive: true, force: true })
 
 ///|
 pub extern "js" fn get_today() -> String =
   #|() => new Date().toISOString().slice(0, 10)
 
 ///|
-fn get_data_dir() -> String {
-  let home = homedir()
-  path_join(path_join(home, ".sga"), "knowledge")
-}
-
-///|
 fn ensure_dir(path : String) -> Unit {
-  let dir = dirname(path)
-  if not(exists_sync(dir)) {
-    mkdir_sync(dir, make_mkdir_options())
+  if not(exists_sync(path)) {
+    mkdir_sync(path, make_mkdir_options())
   }
 }
 
 ///|
+fn get_knowledge_dir(id : String) -> String {
+  let config = get_config()
+  path_join(config.data_dir, id)
+}
+
+///|
 fn get_knowledge_path(id : String) -> String {
-  let data_dir = get_data_dir()
-  path_join(data_dir, id + ".md")
+  let dir = get_knowledge_dir(id)
+  path_join(dir, "knowledge.md")
+}
+
+///|
+fn format_tags_yaml(tags : Array[String]) -> String {
+  if tags.is_empty() {
+    "[]"
+  } else {
+    let items = tags.map(fn(t) { "\n  - " + t })
+    items.join("")
+  }
 }
 
 ///|
@@ -65,18 +78,19 @@ pub fn save_knowledge_file(
   content : String,
   tags : Array[String]
 ) -> String {
+  let dir = get_knowledge_dir(id)
+  ensure_dir(dir)
   let path = get_knowledge_path(id)
-  ensure_dir(path)
-  let tags_str = tags.map(fn(t) { "#" + t }).join(" ")
   let date = get_today()
+  let tags_yaml = format_tags_yaml(tags)
   let md = "---\nid: " +
     id +
     "\ntitle: " +
     title +
     "\ndate: " +
     date +
-    "\ntags: " +
-    tags_str +
+    "\ntags:" +
+    tags_yaml +
     "\n---\n\n" +
     content
   write_file_sync(path, md)
@@ -95,17 +109,11 @@ pub fn get_knowledge_file(id : String) -> String? {
 
 ///|
 pub fn delete_knowledge_file(id : String) -> Bool {
-  let path = get_knowledge_path(id)
-  if exists_sync(path) {
-    unlink_sync(path)
+  let dir = get_knowledge_dir(id)
+  if exists_sync(dir) {
+    rm_sync(dir, make_rm_options())
     true
   } else {
     false
   }
-}
-
-///|
-pub fn get_db_path() -> String {
-  let home = homedir()
-  path_join(path_join(home, ".sga"), "sga.duckdb")
 }

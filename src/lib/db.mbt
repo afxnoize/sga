@@ -39,12 +39,20 @@ extern "js" fn value_get_string(v : Value, key : String) -> String =
   #|(v, key) => v[key]
 
 ///|
+extern "js" fn value_get_string_or_empty(v : Value, key : String) -> String =
+  #|(v, key) => v[key] ?? ""
+
+///|
 extern "js" fn value_get_array(v : Value, key : String) -> Value =
   #|(v, key) => v[key] || []
 
 ///|
 extern "js" fn value_to_string_array(v : Value) -> Array[String] =
   #|(v) => Array.from(v || [])
+
+///|
+extern "js" fn value_to_double_array(v : Value) -> Array[Double]? =
+  #|(v) => v ? Array.from(v) : null
 
 ///|
 let db_ref : Ref[Database?] = Ref::new(None)
@@ -59,7 +67,18 @@ pub fn init_db(path : String) -> Unit {
   let conn = db_connect(db)
   db_ref.val = Some(db)
   conn_ref.val = Some(conn)
-  let schema = "CREATE TABLE IF NOT EXISTS knowledge (id VARCHAR PRIMARY KEY, date DATE NOT NULL, title VARCHAR NOT NULL, tags VARCHAR[], path VARCHAR NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+  let schema =
+    #|CREATE TABLE IF NOT EXISTS knowledge (
+    #|  id VARCHAR PRIMARY KEY,
+    #|  date DATE NOT NULL,
+    #|  title VARCHAR NOT NULL,
+    #|  content TEXT,
+    #|  tags VARCHAR[],
+    #|  path VARCHAR NOT NULL,
+    #|  embedding FLOAT[768],
+    #|  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    #|  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    #|)
   conn_run(conn, schema)
 }
 
@@ -80,24 +99,34 @@ extern "js" fn escape_sql_string(s : String) -> String =
   #|(s) => s.replace(/'/g, "''")
 
 ///|
-pub fn insert_knowledge(meta : KnowledgeMeta) -> Unit {
+extern "js" fn embedding_to_sql(embedding : Array[Double]?) -> String =
+  #|(embedding) => embedding ? "[" + embedding.join(", ") + "]" : "NULL"
+
+///|
+pub fn insert_knowledge(entry : KnowledgeEntry) -> Unit {
   let conn = get_conn()
-  let id = escape_sql_string(meta.id)
-  let date = escape_sql_string(meta.date)
-  let title = escape_sql_string(meta.title)
-  let path = escape_sql_string(meta.path)
-  let tags_sql = tags_to_sql_array(meta.tags)
-  let sql = "INSERT INTO knowledge (id, date, title, tags, path) VALUES ('" +
+  let id = escape_sql_string(entry.id)
+  let date = escape_sql_string(entry.date)
+  let title = escape_sql_string(entry.title)
+  let content = escape_sql_string(entry.content)
+  let path = escape_sql_string(entry.path)
+  let tags_sql = tags_to_sql_array(entry.tags)
+  let embedding_sql = embedding_to_sql(entry.embedding)
+  let sql = "INSERT INTO knowledge (id, date, title, content, tags, path, embedding) VALUES ('" +
     id +
     "', '" +
     date +
     "', '" +
     title +
+    "', '" +
+    content +
     "', " +
     tags_sql +
     ", '" +
     path +
-    "') ON CONFLICT (id) DO UPDATE SET date = EXCLUDED.date, title = EXCLUDED.title, tags = EXCLUDED.tags, path = EXCLUDED.path, updated_at = CURRENT_TIMESTAMP"
+    "', " +
+    embedding_sql +
+    ") ON CONFLICT (id) DO UPDATE SET date = EXCLUDED.date, title = EXCLUDED.title, content = EXCLUDED.content, tags = EXCLUDED.tags, path = EXCLUDED.path, embedding = EXCLUDED.embedding, updated_at = CURRENT_TIMESTAMP"
   conn_run(conn, sql)
 }
 
@@ -108,7 +137,7 @@ pub fn search_knowledge(query : SearchQuery) -> Array[KnowledgeMeta] {
   match query.query {
     Some(q) => {
       let escaped = escape_sql_string(q)
-      conditions.push("(title ILIKE '%" + escaped + "%')")
+      conditions.push("(title ILIKE '%" + escaped + "%' OR content ILIKE '%" + escaped + "%')")
     }
     None => ()
   }
@@ -147,6 +176,38 @@ pub fn search_knowledge(query : SearchQuery) -> Array[KnowledgeMeta] {
     where_clause +
     " ORDER BY date DESC" +
     limit_clause
+  let rows = conn_all(conn, sql)
+  let result : Array[KnowledgeMeta] = []
+  for i in 0..<value_length(rows) {
+    let row = value_get(rows, i)
+    result.push(
+      {
+        id: value_get_string(row, "id"),
+        date: value_get_string(row, "date"),
+        title: value_get_string(row, "title"),
+        tags: value_to_string_array(value_get_array(row, "tags")),
+        path: value_get_string(row, "path"),
+      },
+    )
+  }
+  result
+}
+
+///|
+extern "js" fn format_embedding_sql(embedding : Array[Double]) -> String =
+  #|(embedding) => "[" + embedding.join(", ") + "]::FLOAT[768]"
+
+///|
+pub fn search_knowledge_semantic(
+  query_embedding : Array[Double],
+  limit : Int
+) -> Array[KnowledgeMeta] {
+  let conn = get_conn()
+  let embedding_sql = format_embedding_sql(query_embedding)
+  let sql = "SELECT id, date, title, tags, path, list_cosine_similarity(embedding, " +
+    embedding_sql +
+    ") as similarity FROM knowledge WHERE embedding IS NOT NULL ORDER BY similarity DESC LIMIT " +
+    limit.to_string()
   let rows = conn_all(conn, sql)
   let result : Array[KnowledgeMeta] = []
   for i in 0..<value_length(rows) {

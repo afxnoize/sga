@@ -24,9 +24,14 @@ fn random_element(arr : Array[String]) -> String {
 }
 
 ///|
+extern "js" fn get_today_utc() -> String =
+  #|() => new Date().toISOString().slice(0, 10)
+
+///|
 pub fn generate_id() -> String {
+  let date = get_today_utc()
   let adj = random_element(adjectives)
   let color = random_element(colors)
   let animal = random_element(animals)
-  "\{adj}-\{color}-\{animal}"
+  "\{date}_\{adj}_\{color}_\{animal}"
 }
