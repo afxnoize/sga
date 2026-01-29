@@ -23,7 +23,14 @@ pub struct SearchQuery {
 
 ///|
 pub fn SearchQuery::default() -> SearchQuery {
-  { query: None, tags: None, date_from: None, date_to: None, limit: None, semantic: None }
+  {
+    query: None,
+    tags: None,
+    date_from: None,
+    date_to: None,
+    limit: None,
+    semantic: None,
+  }
 }
 
 ///|

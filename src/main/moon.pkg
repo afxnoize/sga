@@ -4,9 +4,5 @@ import {
 
 options(
   "is-main": true,
-  link: {
-    "js": {
-      "format": "esm",
-    },
-  },
+  link: { "js": { "format": "esm" } },
 )

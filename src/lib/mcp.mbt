@@ -31,7 +31,7 @@ extern "js" fn server_tool_async(
   name : String,
   description : String,
   schema : Value,
-  handler : (Value) -> Value
+  handler : (Value) -> Value,
 ) -> Unit =
   #|(server, name, description, schema, handler) => {
   #|  server.tool(name, description, schema, async (params) => {
@@ -78,7 +78,10 @@ extern "js" fn get_param_string(params : Value, key : String) -> String? =
   #|(params, key) => params[key] ?? null
 
 ///|
-extern "js" fn get_param_string_array(params : Value, key : String) -> Array[String]? =
+extern "js" fn get_param_string_array(
+  params : Value,
+  key : String,
+) -> Array[String]? =
   #|(params, key) => params[key] ?? null
 
 ///|
@@ -101,7 +104,7 @@ extern "js" fn make_save_result(id : String, path : String) -> Value =
 extern "js" fn make_save_result_with_embedding(
   id : String,
   path : String,
-  embedding_status : String
+  embedding_status : String,
 ) -> Value =
   #|(id, path, embedding_status) => ({ id, path, success: true, embedding_status })
 
@@ -127,7 +130,7 @@ extern "js" fn handle_save_with_embedding(
   path : String,
   embedding_promise : Value,
   insert_fn : (KnowledgeEntry) -> Unit,
-  result_fn : (String, String, String) -> Value
+  result_fn : (String, String, String) -> Value,
 ) -> Value =
   #|(id, date, title, content, tags, path, embedding_promise, insert_fn, result_fn) => {
   #|  return embedding_promise.then(result => {
@@ -148,15 +151,7 @@ fn handle_save(params : Value) -> Value {
   let date = get_today()
   let embedding_promise = generate_embedding_for_content(title, content, tags)
   handle_save_with_embedding(
-    id,
-    date,
-    title,
-    content,
-    tags,
-    path,
-    embedding_promise,
-    insert_knowledge,
-    make_save_result_with_embedding,
+    id, date, title, content, tags, path, embedding_promise, insert_knowledge, make_save_result_with_embedding,
   )
 }
 
@@ -165,7 +160,7 @@ extern "js" fn handle_semantic_search_with_embedding(
   embedding_promise : Value,
   limit : Int,
   search_fn : (Array[Double], Int) -> Array[KnowledgeMeta],
-  to_value_fn : (Array[KnowledgeMeta]) -> Value
+  to_value_fn : (Array[KnowledgeMeta]) -> Value,
 ) -> Value =
   #|(embedding_promise, limit, search_fn, to_value_fn) => {
   #|  return embedding_promise.then(result => {
@@ -187,10 +182,7 @@ fn handle_search(params : Value) -> Value {
       Some(q) => {
         let embedding_promise = generate_embedding(q)
         handle_semantic_search_with_embedding(
-          embedding_promise,
-          limit,
-          search_knowledge_semantic,
-          array_to_value,
+          embedding_promise, limit, search_knowledge_semantic, array_to_value,
         )
       }
       None => array_to_value([])

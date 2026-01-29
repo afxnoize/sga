@@ -1,0 +1,88 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "afxnoize/sga/lib"
+
+// Values
+pub fn delete_knowledge_file(String) -> Bool
+
+pub fn delete_knowledge_meta(String) -> Bool
+
+pub fn generate_embedding(String) -> Value
+
+pub fn generate_embedding_for_content(String, String, Array[String]) -> Value
+
+pub fn generate_id() -> String
+
+pub fn get_config() -> Config
+
+pub fn get_knowledge_file(String) -> String?
+
+pub fn get_knowledge_meta(String) -> KnowledgeMeta?
+
+pub fn get_today() -> String
+
+pub fn init_config() -> Config
+
+pub fn init_db(String) -> Unit
+
+pub fn insert_knowledge(KnowledgeEntry) -> Unit
+
+pub fn list_all_knowledge() -> Array[KnowledgeMeta]
+
+pub fn save_knowledge_file(String, String, String, Array[String]) -> String
+
+pub fn search_knowledge(SearchQuery) -> Array[KnowledgeMeta]
+
+pub fn search_knowledge_semantic(Array[Double], Int) -> Array[KnowledgeMeta]
+
+pub fn start_mcp_server() -> Unit
+
+// Errors
+
+// Types and methods
+pub struct Config {
+  data_dir : String
+  db_path : String
+  embedding_model : String
+}
+
+#external
+pub type Connection
+
+#external
+pub type Database
+
+pub struct KnowledgeEntry {
+  id : String
+  date : String
+  title : String
+  content : String
+  tags : Array[String]
+  path : String
+  embedding : Array[Double]?
+}
+
+pub struct KnowledgeMeta {
+  id : String
+  date : String
+  title : String
+  tags : Array[String]
+  path : String
+}
+
+pub struct SearchQuery {
+  query : String?
+  tags : Array[String]?
+  date_from : String?
+  date_to : String?
+  limit : Int?
+  semantic : Bool?
+}
+pub fn SearchQuery::default() -> Self
+
+#external
+pub type Value
+
+// Type aliases
+
+// Traits
+

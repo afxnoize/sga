@@ -137,7 +137,9 @@ pub fn search_knowledge(query : SearchQuery) -> Array[KnowledgeMeta] {
   match query.query {
     Some(q) => {
       let escaped = escape_sql_string(q)
-      conditions.push("(title ILIKE '%" + escaped + "%' OR content ILIKE '%" + escaped + "%')")
+      conditions.push(
+        "(title ILIKE '%" + escaped + "%' OR content ILIKE '%" + escaped + "%')",
+      )
     }
     None => ()
   }
@@ -180,15 +182,13 @@ pub fn search_knowledge(query : SearchQuery) -> Array[KnowledgeMeta] {
   let result : Array[KnowledgeMeta] = []
   for i in 0..<value_length(rows) {
     let row = value_get(rows, i)
-    result.push(
-      {
-        id: value_get_string(row, "id"),
-        date: value_get_string(row, "date"),
-        title: value_get_string(row, "title"),
-        tags: value_to_string_array(value_get_array(row, "tags")),
-        path: value_get_string(row, "path"),
-      },
-    )
+    result.push({
+      id: value_get_string(row, "id"),
+      date: value_get_string(row, "date"),
+      title: value_get_string(row, "title"),
+      tags: value_to_string_array(value_get_array(row, "tags")),
+      path: value_get_string(row, "path"),
+    })
   }
   result
 }
@@ -200,7 +200,7 @@ extern "js" fn format_embedding_sql(embedding : Array[Double]) -> String =
 ///|
 pub fn search_knowledge_semantic(
   query_embedding : Array[Double],
-  limit : Int
+  limit : Int,
 ) -> Array[KnowledgeMeta] {
   let conn = get_conn()
   let embedding_sql = format_embedding_sql(query_embedding)
@@ -212,15 +212,13 @@ pub fn search_knowledge_semantic(
   let result : Array[KnowledgeMeta] = []
   for i in 0..<value_length(rows) {
     let row = value_get(rows, i)
-    result.push(
-      {
-        id: value_get_string(row, "id"),
-        date: value_get_string(row, "date"),
-        title: value_get_string(row, "title"),
-        tags: value_to_string_array(value_get_array(row, "tags")),
-        path: value_get_string(row, "path"),
-      },
-    )
+    result.push({
+      id: value_get_string(row, "id"),
+      date: value_get_string(row, "date"),
+      title: value_get_string(row, "title"),
+      tags: value_to_string_array(value_get_array(row, "tags")),
+      path: value_get_string(row, "path"),
+    })
   }
   result
 }
@@ -235,15 +233,13 @@ pub fn get_knowledge_meta(id : String) -> KnowledgeMeta? {
   let rows = conn_all(conn, sql)
   if value_length(rows) > 0 {
     let row = value_get(rows, 0)
-    Some(
-      {
-        id: value_get_string(row, "id"),
-        date: value_get_string(row, "date"),
-        title: value_get_string(row, "title"),
-        tags: value_to_string_array(value_get_array(row, "tags")),
-        path: value_get_string(row, "path"),
-      },
-    )
+    Some({
+      id: value_get_string(row, "id"),
+      date: value_get_string(row, "date"),
+      title: value_get_string(row, "title"),
+      tags: value_to_string_array(value_get_array(row, "tags")),
+      path: value_get_string(row, "path"),
+    })
   } else {
     None
   }

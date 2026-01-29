@@ -76,7 +76,7 @@ pub fn save_knowledge_file(
   id : String,
   title : String,
   content : String,
-  tags : Array[String]
+  tags : Array[String],
 ) -> String {
   let dir = get_knowledge_dir(id)
   ensure_dir(dir)

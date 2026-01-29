@@ -3,7 +3,7 @@ extern "js" fn generate_embedding_js(
   url : String,
   model : String,
   text : String,
-  timeout_ms : Int
+  timeout_ms : Int,
 ) -> Value =
   #|(url, model, text, timeout_ms) => {
   #|  const controller = new AbortController();
@@ -50,10 +50,15 @@ extern "js" fn truncate_string(s : String, max_len : Int) -> String =
 pub fn generate_embedding_for_content(
   title : String,
   content : String,
-  tags : Array[String]
+  tags : Array[String],
 ) -> Value {
   let tags_str = tags.join(", ")
-  let combined = "Title: " + title + "\nTags: " + tags_str + "\nContent: " + content
+  let combined = "Title: " +
+    title +
+    "\nTags: " +
+    tags_str +
+    "\nContent: " +
+    content
   let text = truncate_string(combined, 8000)
   generate_embedding(text)
 }

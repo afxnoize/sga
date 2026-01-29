@@ -67,6 +67,9 @@ test "Config can be constructed" {
     embedding_model: "nomic-embed-text",
   }
   inspect(config.data_dir, content="/home/user/.local/share/agents/memory")
-  inspect(config.db_path, content="/home/user/.local/share/agents/memory.duckdb")
+  inspect(
+    config.db_path,
+    content="/home/user/.local/share/agents/memory.duckdb",
+  )
   inspect(config.embedding_model, content="nomic-embed-text")
 }
