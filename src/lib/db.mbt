@@ -47,8 +47,12 @@ extern "js" fn value_get_array(v : Value, key : String) -> Value =
   #|(v, key) => v[key] || []
 
 ///|
-extern "js" fn value_to_string_array(v : Value) -> Array[String] =
+extern "js" fn value_to_string_array_ffi(v : Value) -> FixedArray[String] =
   #|(v) => Array.from(v || [])
+
+fn value_to_string_array(v : Value) -> Array[String] {
+  Array::from_fixed_array(value_to_string_array_ffi(v))
+}
 
 ///|
 extern "js" fn value_to_double_array(v : Value) -> Array[Double]? =
@@ -91,8 +95,12 @@ fn get_conn() -> Connection {
 }
 
 ///|
-extern "js" fn tags_to_sql_array(tags : Array[String]) -> String =
+extern "js" fn tags_to_sql_array_ffi(tags : FixedArray[String]) -> String =
   #|(tags) => "[" + tags.map(t => "'" + t.replace(/'/g, "''") + "'").join(", ") + "]"
+
+fn tags_to_sql_array(tags : Array[String]) -> String {
+  tags_to_sql_array_ffi(FixedArray::from_array(tags))
+}
 
 ///|
 extern "js" fn escape_sql_string(s : String) -> String =
@@ -194,8 +202,12 @@ pub fn search_knowledge(query : SearchQuery) -> Array[KnowledgeMeta] {
 }
 
 ///|
-extern "js" fn format_embedding_sql(embedding : Array[Double]) -> String =
+extern "js" fn format_embedding_sql_ffi(embedding : FixedArray[Double]) -> String =
   #|(embedding) => "[" + embedding.join(", ") + "]::FLOAT[768]"
+
+fn format_embedding_sql(embedding : Array[Double]) -> String {
+  format_embedding_sql_ffi(FixedArray::from_array(embedding))
+}
 
 ///|
 pub fn search_knowledge_semantic(
