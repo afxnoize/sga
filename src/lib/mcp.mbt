@@ -93,8 +93,12 @@ extern "js" fn get_param_bool(params : Value, key : String) -> Bool? =
   #|(params, key) => params[key] ?? null
 
 ///|
-extern "js" fn array_to_value(arr : Array[KnowledgeMeta]) -> Value =
+extern "js" fn array_to_value_ffi(arr : FixedArray[KnowledgeMeta]) -> Value =
   #|(arr) => arr
+
+fn array_to_value(arr : Array[KnowledgeMeta]) -> Value {
+  array_to_value_ffi(FixedArray::from_array(arr))
+}
 
 ///|
 extern "js" fn make_save_result(id : String, path : String) -> Value =
@@ -121,12 +125,12 @@ extern "js" fn make_delete_result(id : String, success : Bool) -> Value =
   #|(id, success) => ({ id, deleted: success })
 
 ///|
-extern "js" fn handle_save_with_embedding(
+extern "js" fn handle_save_with_embedding_ffi(
   id : String,
   date : String,
   title : String,
   content : String,
-  tags : Array[String],
+  tags : FixedArray[String],
   path : String,
   embedding_promise : Value,
   insert_fn : (KnowledgeEntry) -> Unit,
@@ -140,6 +144,20 @@ extern "js" fn handle_save_with_embedding(
   #|    return result_fn(id, path, embedding_status);
   #|  });
   #|}
+
+fn handle_save_with_embedding(
+  id : String,
+  date : String,
+  title : String,
+  content : String,
+  tags : Array[String],
+  path : String,
+  embedding_promise : Value,
+  insert_fn : (KnowledgeEntry) -> Unit,
+  result_fn : (String, String, String) -> Value,
+) -> Value {
+  handle_save_with_embedding_ffi(id, date, title, content, FixedArray::from_array(tags), path, embedding_promise, insert_fn, result_fn)
+}
 
 ///|
 fn handle_save(params : Value) -> Value {
@@ -156,11 +174,11 @@ fn handle_save(params : Value) -> Value {
 }
 
 ///|
-extern "js" fn handle_semantic_search_with_embedding(
+extern "js" fn handle_semantic_search_with_embedding_ffi(
   embedding_promise : Value,
   limit : Int,
-  search_fn : (Array[Double], Int) -> Array[KnowledgeMeta],
-  to_value_fn : (Array[KnowledgeMeta]) -> Value,
+  search_fn : (FixedArray[Double], Int) -> FixedArray[KnowledgeMeta],
+  to_value_fn : (FixedArray[KnowledgeMeta]) -> Value,
 ) -> Value =
   #|(embedding_promise, limit, search_fn, to_value_fn) => {
   #|  return embedding_promise.then(result => {
@@ -171,6 +189,15 @@ extern "js" fn handle_semantic_search_with_embedding(
   #|    return [];
   #|  });
   #|}
+
+fn handle_semantic_search_with_embedding(
+  embedding_promise : Value,
+  limit : Int,
+  search_fn : (Array[Double], Int) -> Array[KnowledgeMeta],
+  to_value_fn : (Array[KnowledgeMeta]) -> Value,
+) -> Value {
+  handle_semantic_search_with_embedding_ffi(embedding_promise, limit, fn(__a1, __a2) { FixedArray::from_array(search_fn(Array::from_fixed_array(__a1), __a2)) }, fn(__a3) { to_value_fn(Array::from_fixed_array(__a3)) })
+}
 
 ///|
 fn handle_search(params : Value) -> Value {
